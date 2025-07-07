@@ -2,172 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caesar Cipher Encoder/Decoder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Caesar Cipher PWA</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico">
+  <meta name="description" content="PWA Caesar Cipher tool with live preview, animations, keyboard shortcuts, GitHub link & offline support." />
+  <meta name="theme-color" content="#007BFF">
+
+  <link rel="apple-touch-icon" href="favicon.ico">
+
   <style>
+    :root {
+      --bg: #f4f4f4; --fg: #000;
+      --cont-bg:#fff; --out-bg:#e9ecef;
+      --btn-bg:#007BFF; --btn-hover:#0056b3;
+    }
+    body.dark {
+      --bg:#121212; --fg:#f0f0f0;
+      --cont-bg:#1e1e1e; --out-bg:#2c2c2c;
+      --btn-bg:#0056b3; --btn-hover:#007BFF;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background:var(--bg); color:var(--fg);
+      font-family:Arial,sans-serif;
+      margin:0; padding:20px;
+      display:flex; justify-content:center;
+      transition:0.3s;
     }
-
     .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 600px;
+      background:var(--cont-bg); padding:20px;
+      border-radius:8px; width:100%; max-width:500px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      transition:background 0.3s;
     }
-
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
-    textarea, input[type="number"], select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    h1 { text-align:center; margin-bottom:10px; }
+    label{display:block;margin-top:15px;font-weight:bold;}
+    input,textarea,select {
+      width:100%; padding:10px; margin-top:5px;
+      margin-bottom:10px; border:1px solid #aaa;
+      border-radius:4px;
+      background:var(--bg);color:var(--fg);
       resize: vertical;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      white-space: pre-wrap; word-wrap: break-word;
+      transition:background 0.3s,color 0.3s;
     }
-
-    button {
-      background-color: #007BFF;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
     .output {
-      margin-top: 20px;
-      padding: 15px;
-      background: #e9ecef;
-      border-radius: 5px;
-      min-height: 50px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      background:var(--out-bg); padding:15px;
+      border-radius:4px; min-height:60px;
+      opacity:0; transform: translateY(10px);
+      transition:opacity 0.3s, transform 0.3s;
+      white-space: pre-wrap; word-wrap: break-word;
     }
-
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 15px;
+    .output.visible {opacity:1; transform: translateY(0);}
+    .btn { background:var(--btn-bg); color:white;
+      border:none; padding:12px; width:100%; border-radius:4px;
+      font-size:16px; cursor:pointer; margin-top:10px;
+      transition:background 0.2s, transform 0.1s;
     }
+    .btn:hover { background:var(--btn-hover); }
+    .btn:active { transform: scale(0.98); }
+    .btn-group {display:flex;flex-direction:column;}
   </style>
 </head>
 <body>
   <div class="container">
-  <hr>
-    <h1>🔐 Caesar Cipher - Encoder & Decoder</h1>
-	<center><h4>Developed by DrtXpmvi - Written in HTML, CSS, & JavaScript</h4></center>
-	<hr>
-
-    <label for="mode">Mode</label>
-    <select id="mode">
-      <option value="encode">Encode</option>
-      <option value="decode">Decode</option>
-    </select>
-
-    <label for="shift">Shift Amount</label>
-    <input type="number" id="shift" value="3" min="1" max="25" />
-
-    <label for="inputText">Enter Text</label>
-    <textarea id="inputText" rows="5" placeholder="Type your message..."></textarea>
-
+    <h1>🔐 Caesar Cipher</h1>
+    <label>Mode<select id="mode"><option value="encode">Encode</option><option value="decode">Decode</option></select></label>
+    <label>Shift Amount<input type="number" id="shift" value="3" min="1" max="25"></label>
+    <label>Enter Text<textarea id="inputText" rows="4" placeholder="Type your message..."></textarea></label>
     <div class="output" id="result"></div>
-
-    <div class="button-group">
-      <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
-      <button onclick="downloadText()">💾 Download as Text</button>
-      <button onclick="openGitHub()">🐙 Find me on GitHub</button>
+    <div class="btn-group">
+      <button class="btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+      <button class="btn" onclick="downloadText()">💾 Download as Text</button>
+      <button class="btn" onclick="openGitHub()">🐙 Find me on GitHub</button>
+      <button class="btn" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
     </div>
   </div>
 
   <script>
-    function caesarCipher(str, shift, mode = "encode") {
-      return str.split('').map(char => {
-        const isUpper = char >= 'A' && char <= 'Z';
-        const isLower = char >= 'a' && char <= 'z';
-
-        if (!isUpper && !isLower) return char;
-
-        const base = isUpper ? 65 : 97;
-        const offset = mode === "decode" ? (26 - shift) : shift;
-
-        return String.fromCharCode((char.charCodeAt(0) - base + offset) % 26 + base);
+    // Caesar logic
+    function caesarCipher(s, n, mode) {
+      return [...s].map(c => {
+        let b = c.charCodeAt(0);
+        if(c>='A' && c<='Z' || c>='a'&&c<='z') {
+          const base = (c<='Z')?65:97;
+          const shift = mode==='decode'?26-n:n;
+          return String.fromCharCode((b-base+shift)%26+base);
+        }
+        return c;
       }).join('');
     }
-
-    function updatePreview() {
-      const mode = document.getElementById('mode').value;
-      const shift = parseInt(document.getElementById('shift').value) || 0;
-      const text = document.getElementById('inputText').value;
-
-      const result = text.trim()
-        ? caesarCipher(text, shift, mode)
-        : "Please enter some text!";
-        
-      document.getElementById('result').textContent = result;
+    const inTxt = ()=>document.getElementById('inputText').value;
+    const upd = () => {
+      const t=inTxt(), s=+document.getElementById('shift').value||0, m=document.getElementById('mode').value;
+      const out = t?caesarCipher(t,s,m): 'Please enter text';
+      const el=document.getElementById('result');
+      el.textContent=out; el.classList.add('visible');
+    };
+    const copyToClipboard = () => {
+      const t=document.getElementById('result').textContent;
+      if(!t) return alert("Nothing!");
+      navigator.clipboard.writeText(t).then(() => alert("Copied!"));
+    };
+    const downloadText = () => {
+      const t=document.getElementById('result').textContent;
+      if(!t) return alert("Nothing!");
+      const blob=new Blob([t],{type:'text/plain'}), a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='cipher.txt';a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    const openGitHub = () => window.open('https://github.com/PlayzDev','_blank');
+    const toggleDarkMode = () => document.body.classList.toggle('dark');
+    // events
+    ['input','change'].forEach(e=>{
+      document.getElementById('inputText').addEventListener('input',upd);
+      document.getElementById('shift').addEventListener('input',upd);
+      document.getElementById('mode').addEventListener('change',upd);
+    });
+    // keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if(e.ctrlKey) {
+        switch(e.key.toLowerCase()) {
+          case 'e': e.preventDefault(); document.getElementById('mode').value = document.getElementById('mode').value==='encode'?'decode':'encode'; upd(); break;
+          case 'c': e.preventDefault(); copyToClipboard(); break;
+          case 'd': e.preventDefault(); downloadText(); break;
+          case 'g': e.preventDefault(); openGitHub(); break;
+          case 't': e.preventDefault(); toggleDarkMode(); break;
+        }
+      }
+    });
+    upd();
+    // register SW
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js')
+        .then(r=>console.log('SW registered'))
+        .catch(e=>console.log('SW failed',e));
     }
-
-    function copyToClipboard() {
-      const resultText = document.getElementById('result').textContent;
-      if (!resultText || resultText === "Please enter some text!") return alert("Nothing to copy!");
-
-      navigator.clipboard.writeText(resultText)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(() => alert("Failed to copy!"));
-    }
-
-    function downloadText() {
-      const resultText = document.getElementById('result').textContent;
-      if (!resultText || resultText === "Please enter some text!") return alert("Nothing to download!");
-
-      const blob = new Blob([resultText], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "caesar_output.txt";
-      link.click();
-      URL.revokeObjectURL(link.href);
-    }
-
-    function openGitHub() {
-      window.open("https://github.com/DrtXpmvi", "_blank");
-    }
-
-    document.getElementById('inputText').addEventListener('input', updatePreview);
-    document.getElementById('shift').addEventListener('input', updatePreview);
-    document.getElementById('mode').addEventListener('change', updatePreview);
-
-    updatePreview();
   </script>
 </body>
 </html>
