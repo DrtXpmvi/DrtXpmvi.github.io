@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Digital Products Landing Page</title>
+  <title>DrtXpmvi's MultiTool ToolKit</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
   <style>
     :root {
       --bg-color: #f9f9f9;
@@ -197,45 +198,51 @@
 <body>
 
   <header>
-    <button class="toggle-theme" onclick="toggleTheme()">Click Here To Toggle Dark Mode</button>
+    <!-- <button class="toggle-theme" onclick="toggleTheme()">Click Here To Toggle Dark Mode</button> -->
     <div class="container">
-      <h1>Explore Our Digital Products</h1>
-      <p>Boost your productivity with our top-tier tools!</p>
-      <a href="#products" class="btn-primary">View Products</a>
+      <h1>Explore DrtXpmvi's MultiTool Toolkit</h1>
+      <p>We offer a wide-range of digital tools, including a Caesar Cipher encoder & decoder, a Base64 encoder & decoder, as well an EXIF / MetaData Remover, an Image Converter, an Audio Converter, and many many more cool and useful tools! The best part is... DrtXpmvi's Digital Tools are 100% free, and completely open-source. Meaning the source code for every single one of our tool's is publicly available, and can be downloaded, modified, and used by others, and is available via GitHub.</p>
+	  
+	  <br>
+	  
+	  <!-- <p>We offer a wide-range of digital tools, including a Caesar Cipher encoder & decoder, a Base64 encoder & decoder, as well an EXIF / MetaData Remover, an Image Converter, an Audio Converter, and many many more cool and useful tools! The best part is... DrtXpmvi's Digital Tools are 100% free, and completely open-source. Meaning the source code for every single one of our tool's is publicly available, and can be downloaded, modified, and used by others, and is available via GitHub. Meaning the source code for every single one of our tool's is publicly available, and can be downloaded, modified, and used by others, and is available via GitHub.</p> -->
+      <a href="#products" class="btn-primary">View All Tools and Serices</a>
     </div>
   </header>
 
-  <main id="products" class="container">
-    <section class="products">
-      <div class="product-card" onclick="showDetails(1)">
-        <img src="https://via.placeholder.com/300x200?text=Product+1" alt="Product 1"/>
-        <h2>Productivity Suite</h2>
-        <p>All-in-one toolkit for managing tasks and collaboration.</p>
+<main id="products" class="container">
+  <section class="products">
+    <div class="product-card">
+      <img src="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/CaesarCipher-Featured-Img.png" alt="Product 1"/>
+      <h2>Caesar Cipher</h2>
+      <p>All-in-one tool for encoding and decoding text using a Caesar Cipher</p>
+      <a href="CaesarCipher.html" target="_blank">
         <button>Learn More</button>
-      </div>
+      </a>
+    </div>
 
-      <div class="product-card" onclick="showDetails(2)">
-        <img src="https://via.placeholder.com/300x200?text=Product+2" alt="Product 2"/>
-        <h2>Design Studio</h2>
-        <p>Creative tools to bring your designs to life with ease.</p>
+    <div class="product-card">
+      <img src="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/Base64-Featured-Img-resized.png" alt="Product 2"/>
+      <h2>Base64</h2>
+      <p>All-in-one tool for encoding and decoding text using Base64</p>
+      <a href="Base64.html" target="_blank">
         <button>Learn More</button>
-      </div>
+      </a>
+    </div>
 
-      <div class="product-card" onclick="showDetails(3)">
-        <img src="https://via.placeholder.com/300x200?text=Product+3" alt="Product 3"/>
-        <h2>Analytics Dashboard</h2>
-        <p>Real-time insights to grow your business intelligently.</p>
+    <div class="product-card">
+      <img src="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/EXIF-Metadata-Remover-Feat-Img.png" alt="Product 3"/>
+      <h2>EXIF/Metadata Remover</h2>
+      <p>All-in-one tool for removing EXIF/Metadata from images.</p>
+      <a href="EXIF-Remover.html" target="_blank">
         <button>Learn More</button>
-      </div>
-    </section>
+      </a>
+    </div>
+  </section>
+</main>
 
-    <section class="newsletter">
-      <h2>Subscribe to our Newsletter</h2>
-      <p>Get product updates, news, and offers straight to your inbox.</p>
-      <input type="email" id="email" placeholder="Enter your email" />
-      <button onclick="subscribe()">Subscribe</button>
-      <div class="message" id="message"></div>
-    </section>
+
+    
   </main>
 
   <section class="modal" id="modal">
@@ -248,7 +255,7 @@
   </section>
 
   <footer>
-    <p>© 2025 Digital Tools Inc. All rights reserved.</p>
+    <p>© 2025 DrtXpmvi. All rights reserved.</p>
   </footer>
 
   <script>
