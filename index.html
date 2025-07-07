@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Caesar Cipher Encode/Decode</title>
-	<link rel="icon" type="image/x-icon" href="./imgs/favicon.ico">
+  <title>Caesar Cipher Encoder/Decoder</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -86,12 +85,8 @@
 </head>
 <body>
   <div class="container">
-		<hr>
-        <h1>🔐 Caesar Cipher Encoder & Decoder</h1>
-	<center><h4>
-	&ensp;Developed by PlayzDevelopment - Written in HTML, JavaScript, & CSS</h4></center>
+    <h1>🔐 Caesar Cipher</h1>
 
-	<hr>
     <label for="mode">Mode</label>
     <select id="mode">
       <option value="encode">Encode</option>
@@ -99,7 +94,7 @@
     </select>
 
     <label for="shift">Shift Amount</label>
-    <input type="number" id="shift" value=3" min="1" max="25" />
+    <input type="number" id="shift" value="3" min="1" max="25" />
 
     <label for="inputText">Enter Text</label>
     <textarea id="inputText" rows="5" placeholder="Type your message..."></textarea>
@@ -109,7 +104,7 @@
     <div class="button-group">
       <button onclick="copyToClipboard()">📋 Copy to Clipboard</button>
       <button onclick="downloadText()">💾 Download as Text</button>
-      <button onclick="openGitHub()">🐙 Find me on GitHub - (Source code for this project coming June 2028!)</button>
+      <button onclick="openGitHub()">🐙 Find me on GitHub</button>
     </div>
   </div>
 
