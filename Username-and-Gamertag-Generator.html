@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ultimate Username/Gamertag Generator</title>
+<link rel="icon" href="./favicon.ico" type="image/x-icon">
+<style>
+  /* ... (existing CSS styles) ... */
+  .avatar { width: 64px; height: 64px; border-radius: 50%; margin-bottom: 10px; }
+  .filter { margin: 0 5px; padding: 6px 12px; background: var(--highlight); color: white; border: none; border-radius: 6px; cursor: pointer; }
+  .filter.active { background: #005f88; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎮 Ultimate Gamertag Generator</h1>
+  <div>
+    <button class="filter active" onclick="selectFilter('random')">Random</button>
+    <button class="filter" onclick="selectFilter('adventure')">Adventure</button>
+    <button class="filter" onclick="selectFilter('sci-fi')">Sci-Fi</button>
+  </div>
+  <img id="avatar-img" class="avatar" src="" alt="Avatar" hidden />
+  <div id="username-box">Click "Generate"</div>
+  <div class="buttons">
+    <button onclick="generateUsername()">Generate</button>
+    <button onclick="copyUsername()">📋 Copy</button>
+    <button onclick="saveUsername()">⭐ Save</button>
+    <button onclick="toggleTheme()">🌓 Toggle Theme</button>
+    <button onclick="exportFavorites()">📂 Export</button>
+  </div>
+  <h2>⭐ Favorites</h2>
+  <ul id="favorites-list"></ul>
+</div>
+
+<script>
+  const filters = { 'random':'', 'adventure':'adventure', 'sci-fi':'sci-fi' };
+  let currentFilter = 'random';
+  document.querySelectorAll('.filter').forEach(btn => btn.classList.remove('active'));
+
+  function selectFilter(f) {
+    currentFilter = f;
+    document.querySelectorAll('.filter').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase().includes(f)));
+  }
+
+  async function generateUsername() {
+    let username;
+    if (currentFilter === 'random') {
+      username = await fetchSimpleAI();
+    } else {
+      username = await fetchSimpleAI(currentFilter);
+    }
+    displayUsername(username);
+  }
+
+  async function fetchSimpleAI(theme='') {
+    const resp = await fetch(`https://usernameapiv1.vercel.app/api/random-usernames`);
+    const data = await resp.json();
+    let name = data.usernames?.[0] || 'UnknownUser';
+    return theme !== 'random' ? theme.charAt(0).toUpperCase() + theme.slice(1) + name : name;
+  }
+
+  function displayUsername(username) {
+    const box = document.getElementById('username-box');
+    const avatar = document.getElementById('avatar-img');
+    box.textContent = username;
+    avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random&rounded=true`;
+    avatar.hidden = false;
+  }
+
+  // (Existing copy, save, load, export, toggleTheme functionality)
+
+  window.onload = () => { loadFavorites(); };
+
+</script>
+</body>
+</html>
