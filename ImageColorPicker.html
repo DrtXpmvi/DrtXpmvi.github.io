@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Color Picker</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --fg: #000;
+      --panel-bg: #fff;
+    }
+    body.dark {
+      --bg: #222;
+      --fg: #eee;
+      --panel-bg: #333;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: var(--panel-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      max-width: 900px;
+      width: 100%;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    .switch input { display:none; }
+    .slider {
+      position: absolute;
+      top:0;left:0;
+      width:100%;height:100%;
+      background: #ccc;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .slider:before {
+      position:absolute;
+      content: "";
+      width: 18px;
+      height: 18px;
+      left:1px;
+      bottom:1px;
+      background: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+    input:checked + .slider {
+      background: #2196F3;
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      border: 2px dashed transparent;
+      transition: border-color 0.2s;
+    }
+    .canvas-wrapper.dragover {
+      border-color: #007bff;
+    }
+
+    #dragOverlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 123, 255, 0.7);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 10;
+      display: none;
+      pointer-events: none;
+    }
+
+    .canvas-wrapper.dragover #dragOverlay {
+      display: flex;
+    }
+
+    #imageCanvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      max-width: 100%;
+    }
+
+    #zoomPreview {
+      position: absolute;
+      border: 2px solid var(--fg);
+      width: 100px;
+      height: 100px;
+      display: none;
+      pointer-events: none;
+    }
+
+    #colorInfo {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #colorPreview {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #000;
+    }
+
+    .color-values {
+      text-align: left;
+    }
+
+    #copyButton {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #history {
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    #history h2 {
+      margin-bottom: 10px;
+    }
+
+    #historyList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background-color: #fafafa;
+    }
+
+    .history-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Advanced Image Color Picker</h1>
+
+    <div class="controls">
+      <input type="file" id="imageUploader" accept="image/*" />
+      <button id="eyedropperBtn">🔍 Use Eyedropper</button>
+      <button id="downloadJson">Download JSON</button>
+      <button id="downloadCsv">Download CSV</button>
+      <label class="switch">
+        <input type="checkbox" id="darkModeToggle">
+        <span class="slider"></span>
+      </label>
+      <span>Dark Mode</span>
+    </div>
+
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <div id="dragOverlay">📥 Drop image here</div>
+      <canvas id="imageCanvas"></canvas>
+      <div id="zoomPreview"></div>
+    </div>
+
+    <div id="colorInfo">
+      <div id="colorPreview"></div>
+      <div class="color-values">
+        <p><strong>HEX:</strong> <span id="colorHex">#ffffff</span></p>
+        <p><strong>RGB:</strong> <span id="colorRGB">rgb(255, 255, 255)</span></p>
+      </div>
+      <button id="copyButton">📋 Copy</button>
+    </div>
+
+    <div id="history">
+      <h2>Picked Colors</h2>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <script>
+    const uploader = document.getElementById('imageUploader');
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    const zoom = document.getElementById('zoomPreview');
+    const hexEl = document.getElementById('colorHex');
+    const rgbEl = document.getElementById('colorRGB');
+    const preview = document.getElementById('colorPreview');
+    const copyBtn = document.getElementById('copyButton');
+    const historyList = document.getElementById('historyList');
+    const dlJsonBtn = document.getElementById('downloadJson');
+    const dlCsvBtn = document.getElementById('downloadCsv');
+    const eyedropperBtn = document.getElementById('eyedropperBtn');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const dragOverlay = document.getElementById('dragOverlay');
+
+    let picks = [];
+
+    function loadImage(file) {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img,0,0);
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    uploader.onchange = e => {
+      const file = e.target.files?.[0];
+      if (file) loadImage(file);
+    };
+
+    canvas.onmousemove = e => {
+      const {left,top} = canvas.getBoundingClientRect();
+      const x = Math.floor(e.clientX-left);
+      const y = Math.floor(e.clientY-top);
+      const zoomImage = ctx.getImageData(Math.max(0,x-5),Math.max(0,y-5),10,10);
+      const st = document.createElement('canvas');
+      st.width=zoom.width; st.height=zoom.height;
+      st.getContext('2d').putImageData(zoomImage,0,0);
+      zoom.innerHTML='';
+      zoom.appendChild(st);
+      zoom.style.left = e.clientX+10+'px';
+      zoom.style.top = e.clientY+10+'px';
+      zoom.style.display = 'block';
+    };
+
+    canvas.onmouseleave = () => zoom.style.display = 'none';
+
+    canvas.onclick = e => {
+      const {left,top} = canvas.getBoundingClientRect();
+      const x = Math.floor(e.clientX-left);
+      const y = Math.floor(e.clientY-top);
+      const [r,g,b] = ctx.getImageData(x,y,1,1).data;
+      const hex = rgbToHex(r,g,b);
+      const rgb = `rgb(${r},${g},${b})`;
+      preview.style.backgroundColor = hex;
+      hexEl.textContent = hex;
+      rgbEl.textContent = rgb;
+      picks.unshift({hex,rgb});
+      renderHistory();
+    };
+
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(`${hexEl.textContent} / ${rgbEl.textContent}`)
+        .then(() => {
+          copyBtn.textContent='✅ Copied!';
+          setTimeout(()=>copyBtn.textContent='📋 Copy',1000);
+        });
+    };
+
+    dlJsonBtn.onclick = () => {
+      const blob = new Blob([JSON.stringify(picks, null,2)],{type:'application/json'});
+      saveBlob(blob,'palette.json');
+    };
+
+    dlCsvBtn.onclick = () => {
+      const csv = picks.map(p=>`${p.hex},${p.rgb}`).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      saveBlob(blob,'palette.csv');
+    };
+
+    function saveBlob(b,name){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = name;
+      a.click();
+    }
+
+    function renderHistory(){
+      historyList.innerHTML = '';
+      picks.forEach(p=>{
+        const div = document.createElement('div');
+        div.className='history-item';
+        div.innerHTML = `<div class="history-color" style="background:${p.hex}"></div><span>${p.hex} / ${p.rgb}</span>`;
+        historyList.appendChild(div);
+      });
+    }
+
+    eyedropperBtn.onclick = async () => {
+      if (!window.Eyedropper) {
+        alert('Eyedropper API not supported in your browser');
+        return;
+      }
+      try {
+        const eye = new Eyedropper();
+        const s = await eye.open();
+        if (s.sRGBHex) {
+          const hex = s.sRGBHex;
+          const rgb = hexToRgbText(hex);
+          hexEl.textContent = hex;
+          rgbEl.textContent = rgb;
+          preview.style.backgroundColor = hex;
+          picks.unshift({hex,rgb});
+          renderHistory();
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    };
+
+    function rgbToHex(r,g,b){
+      return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+    }
+
+    function hexToRgbText(h){
+      const r=parseInt(h.substr(1,2),16);
+      const g=parseInt(h.substr(3,2),16);
+      const b=parseInt(h.substr(5,2),16);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    darkModeToggle.onchange = () => {
+      document.body.classList.toggle('dark',darkModeToggle.checked);
+    };
+
+    canvasWrapper.addEventListener("dragover", e => {
+      e.preventDefault();
+      canvasWrapper.classList.add("dragover");
+    });
+
+    canvasWrapper.addEventListener("dragleave", () => {
+      canvasWrapper.classList.remove("dragover");
+    });
+
+    canvasWrapper.addEventListener("drop", e => {
+      e.preventDefault();
+      canvasWrapper.classList.remove("dragover");
+      const file = e.dataTransfer.files?.[0];
+      if (file && file.type.startsWith("image/")) {
+        loadImage(file);
+      }
+    });
+  </script>
+</body>
+</html>

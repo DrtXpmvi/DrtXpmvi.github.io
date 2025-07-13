@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Caesar Cipher PWA</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <meta name="description" content="PWA Caesar Cipher tool with live preview, animations, keyboard shortcuts, GitHub link & offline support." />
+  <meta name="theme-color" content="#007BFF">
+
+  <link rel="apple-touch-icon" href="favicon.ico">
+
+  <style>
+    :root {
+      --bg: #f4f4f4; --fg: #000;
+      --cont-bg:#fff; --out-bg:#e9ecef;
+      --btn-bg:#007BFF; --btn-hover:#0056b3;
+    }
+    body.dark {
+      --bg:#121212; --fg:#f0f0f0;
+      --cont-bg:#1e1e1e; --out-bg:#2c2c2c;
+      --btn-bg:#0056b3; --btn-hover:#007BFF;
+    }
+    body {
+      background:var(--bg); color:var(--fg);
+      font-family:Arial,sans-serif;
+      margin:0; padding:20px;
+      display:flex; justify-content:center;
+      transition:0.3s;
+    }
+    .container {
+      background:var(--cont-bg); padding:20px;
+      border-radius:8px; width:100%; max-width:500px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      transition:background 0.3s;
+    }
+    h1 { text-align:center; margin-bottom:10px; }
+    label{display:block;margin-top:15px;font-weight:bold;}
+    input,textarea,select {
+      width:100%; padding:10px; margin-top:5px;
+      margin-bottom:10px; border:1px solid #aaa;
+      border-radius:4px;
+      background:var(--bg);color:var(--fg);
+      resize: vertical;
+      white-space: pre-wrap; word-wrap: break-word;
+      transition:background 0.3s,color 0.3s;
+    }
+    .output {
+      background:var(--out-bg); padding:15px;
+      border-radius:4px; min-height:60px;
+      opacity:0; transform: translateY(10px);
+      transition:opacity 0.3s, transform 0.3s;
+      white-space: pre-wrap; word-wrap: break-word;
+    }
+    .output.visible {opacity:1; transform: translateY(0);}
+    .btn { background:var(--btn-bg); color:white;
+      border:none; padding:12px; width:100%; border-radius:4px;
+      font-size:16px; cursor:pointer; margin-top:10px;
+      transition:background 0.2s, transform 0.1s;
+    }
+    .btn:hover { background:var(--btn-hover); }
+    .btn:active { transform: scale(0.98); }
+    .btn-group {display:flex;flex-direction:column;}
+  </style>
+</head>
+<body>
+  <div class="container">
+  <hr>
+    <center><h2>🔐 Caesar Cipher Encoder / Decoder</h2></center>
+	<center><h5>Written in HTML, CSS, & JavaScript - Developed by DrtXpmvi</h5></center>
+	<hr>
+    <label>Mode<select id="mode"><option value="encode">Encode</option><option value="decode">Decode</option></select></label>
+    <label>Shift Amount<input type="number" id="shift" value="3" min="1" max="25"></label>
+    <label>Enter Text<textarea id="inputText" rows="4" placeholder="Type your message..."></textarea></label>
+    <div class="output" id="result"></div>
+    <div class="btn-group">
+      <button class="btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+      <button class="btn" onclick="downloadText()">💾 Download as Text</button>
+      <button class="btn" onclick="openGitHub()">🐙 Find me on GitHub</button>
+      <button class="btn" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+    </div>
+  </div>
+
+  <script>
+    // Caesar logic
+    function caesarCipher(s, n, mode) {
+      return [...s].map(c => {
+        let b = c.charCodeAt(0);
+        if(c>='A' && c<='Z' || c>='a'&&c<='z') {
+          const base = (c<='Z')?65:97;
+          const shift = mode==='decode'?26-n:n;
+          return String.fromCharCode((b-base+shift)%26+base);
+        }
+        return c;
+      }).join('');
+    }
+    const inTxt = ()=>document.getElementById('inputText').value;
+    const upd = () => {
+      const t=inTxt(), s=+document.getElementById('shift').value||0, m=document.getElementById('mode').value;
+      const out = t?caesarCipher(t,s,m): 'Please enter text';
+      const el=document.getElementById('result');
+      el.textContent=out; el.classList.add('visible');
+    };
+    const copyToClipboard = () => {
+      const t=document.getElementById('result').textContent;
+      if(!t) return alert("Nothing!");
+      navigator.clipboard.writeText(t).then(() => alert("Copied!"));
+    };
+    const downloadText = () => {
+      const t=document.getElementById('result').textContent;
+      if(!t) return alert("Nothing!");
+      const blob=new Blob([t],{type:'text/plain'}), a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='cipher.txt';a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    const openGitHub = () => window.open('https://github.com/PlayzDev','_blank');
+    const toggleDarkMode = () => document.body.classList.toggle('dark');
+    // events
+    ['input','change'].forEach(e=>{
+      document.getElementById('inputText').addEventListener('input',upd);
+      document.getElementById('shift').addEventListener('input',upd);
+      document.getElementById('mode').addEventListener('change',upd);
+    });
+    // keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if(e.ctrlKey) {
+        switch(e.key.toLowerCase()) {
+          case 'e': e.preventDefault(); document.getElementById('mode').value = document.getElementById('mode').value==='encode'?'decode':'encode'; upd(); break;
+          case 'c': e.preventDefault(); copyToClipboard(); break;
+          case 'd': e.preventDefault(); downloadText(); break;
+          case 'g': e.preventDefault(); openGitHub(); break;
+          case 't': e.preventDefault(); toggleDarkMode(); break;
+        }
+      }
+    });
+    upd();
+    // register SW
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js')
+        .then(r=>console.log('SW registered'))
+        .catch(e=>console.log('SW failed',e));
+    }
+  </script>
+</body>
+</html>

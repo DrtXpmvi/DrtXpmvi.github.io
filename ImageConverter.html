@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Ultimate Image Converter</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <style>
+    :root { --bg:#f7f7f7;--fg:#333;--card:#fff;--btn:#4CAF50; }
+    [data-theme="dark"] { --bg:#2b2b2b;--fg:#eee;--card:#3b3b3b;--btn:#6fbf73; }
+    body { background:var(--bg);color:var(--fg);font-family:'Segoe UI',sans-serif;
+      margin:0;padding:20px;display:flex;justify-content:center;transition:all .3s;}
+    .theme-toggle {position:absolute;top:20px;right:20px;padding:6px 10px;
+      background:var(--btn);border:none;border-radius:4px;color:#fff;cursor:pointer;}
+    .container {background:var(--card);padding:2rem;border-radius:8px;
+      box-shadow:0 0 15px rgba(0,0,0,0.1);width:100%;max-width:700px;text-align:center;}
+    .drop-zone {border:2px dashed #ccc;padding:2rem;border-radius:8px;
+      background:var(--bg);cursor:pointer;margin-bottom:1rem;}
+    .drop-zone.bring {background:#e0e0e0;}
+    .browse-btn {color:#007bff;cursor:pointer;text-decoration:underline;}
+    input,select,button {margin:10px 0;padding:10px;font-size:1rem;width:100%;}
+    button {background:var(--btn);color:#fff;border:none;cursor:pointer;}
+    #cancelBtn {background:#f44336;}
+    #zipBtn {background:#2196f3;}
+    .progress-container {width:100%;background:#ddd;border-radius:8px;margin:1rem 0;height:20px;}
+    .progress-bar {height:100%;width:0%;background:var(--btn);border-radius:8px;}
+    .file-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));grid-gap:10px;margin:1rem 0;}
+    .file-item {background:var(--card);padding:0.5rem;border-radius:4px;
+      display:flex;flex-direction:column;align-items:center;cursor:move;position:relative;}
+    .file-item img {max-width:80px;max-height:80px;border:1px solid #ccc;}
+    .file-item span {font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;}
+    .remove-btn {position:absolute;top:4px;right:4px;background:#f44336;color:white;border:none;border-radius:50%;
+      width:20px;height:20px;font-size:12px;cursor:pointer;}
+    .quality-file {width:80%;margin:6px 0;}
+    .save-load {display:flex;justify-content:space-between;}
+  </style>
+</head>
+<body>
+  <button class="theme-toggle">Toggle Theme</button>
+  <div class="container">
+    <h1>Image Converter + Quality + Save/Load</h1>
+
+    <div class="save-load">
+      <button id="saveTasksBtn">💾 Save List</button>
+      <button id="loadTasksBtn">📂 Load List</button>
+    </div>
+
+    <div id="downloadCount" style="margin:1em 0;font-weight:bold;">Downloaded: 0</div>
+
+    <div id="dropZone" class="drop-zone">
+      Drag & Drop, or <label class="browse-btn" for="fileInput">Browse</label>
+      <input type="file" id="fileInput" accept="image/*,image/svg+xml" multiple>
+    </div>
+
+    <label>Output Format:</label>
+    <select id="formatSelect">
+      <option value="image/png">PNG</option>
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/webp">WebP</option>
+      <option value="image/bmp">BMP</option>
+      <option value="image/tiff">TIFF</option>
+      <option value="image/svg+xml">SVG</option>
+    </select>
+
+    <div id="fileGrid" class="file-grid"></div>
+
+    <button id="convertBtn">Convert All</button>
+    <button id="cancelBtn" disabled>Cancel</button>
+    <button id="zipBtn" disabled>Download ZIP</button>
+
+    <div class="progress-container" style="display:none;">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <div id="downloadLinks"></div>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvg@4/dist/browser/canvg.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    const body=document.body, themeBtn=document.querySelector('.theme-toggle');
+    const preferDark=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+    body.setAttribute('data-theme',preferDark);themeBtn.textContent=preferDark==='dark'?'Light Mode':'Dark Mode';
+    themeBtn.onclick=()=>{ const t=body.getAttribute('data-theme')==='light'?'dark':'light';body.setAttribute('data-theme',t);themeBtn.textContent=t==='dark'?'Light Mode':'Dark Mode'; };
+
+    const dropZone=document.getElementById('dropZone'), fileInput=document.getElementById('fileInput');
+    const formatSelect=document.getElementById('formatSelect'), convertBtn=document.getElementById('convertBtn');
+    const cancelBtn=document.getElementById('cancelBtn'), zipBtn=document.getElementById('zipBtn');
+    const progressContainer=document.querySelector('.progress-container'), progressBar=document.getElementById('progressBar');
+    const fileGrid=document.getElementById('fileGrid'), downloadLinks=document.getElementById('downloadLinks');
+    const downloadCountEl=document.getElementById('downloadCount'), canvas=document.getElementById('canvas'),
+          ctx=canvas.getContext('2d');
+    const saveBtn=document.getElementById('saveTasksBtn'), loadBtn=document.getElementById('loadTasksBtn');
+
+    let tasks=[], cancelFlag=false, convertedBlobs=[], downloadCount=0;
+
+    function saveTasks(){
+      try {
+        const data=tasks.map(t=>({name:t.file.name, svgText:t.svgText, dataURL:t.dataURL, quality:t.quality}));
+        localStorage.setItem('imgTasks',JSON.stringify(data));
+        alert('Task list saved.');
+      } catch(e){alert('Save failed.');}
+    }
+    function loadTasks(){
+      const str=localStorage.getItem('imgTasks');
+      if(!str){alert('Nothing to load.');return;}
+      try {
+        const arr=JSON.parse(str);
+        tasks=arr.map(t=>({
+          file:{name:t.name}, svgText:t.svgText, dataURL:t.dataURL,
+          quality:t.quality||90
+        }));
+        renderGrid();
+      } catch{alert('Load failed.');}
+    }
+
+    function handleFiles(files){
+      return Array.from(files).map(f=> new Promise(r=>{
+        const reader=new FileReader();
+        reader.onload=()=>{
+          const isSVG=f.type==='image/svg+xml';
+          r({ file:f, svgText:isSVG?reader.result:null, dataURL:isSVG?null:reader.result, quality:90 });
+        };
+        isSVG?reader.readAsText(f):reader.readAsDataURL(f);
+      }));
+    }
+
+    function renderGrid(){
+      fileGrid.innerHTML='';
+      tasks.forEach((t,i)=>{
+        const div=document.createElement('div');div.className='file-item';div.draggable=true;div.dataset.idx=i;
+        const img=document.createElement('img');img.src = t.dataURL || 'data:image/svg+xml;base64,'+btoa(t.svgText||'');
+        const span=document.createElement('span');span.textContent=t.file.name;
+        const slider=document.createElement('input');slider.type='range';slider.min=10;slider.max=100;
+        slider.value=t.quality;slider.className='quality-file';
+        slider.oninput=()=>t.quality=parseInt(slider.value);
+        const btn=document.createElement('button');btn.className='remove-btn';btn.textContent='✖';
+        btn.onclick=()=>{ tasks.splice(i,1); renderGrid(); };
+        div.append(img,span,slider,btn); fileGrid.append(div);
+      });
+      attachDrag();
+    }
+
+    function attachDrag(){
+      document.querySelectorAll('.file-item').forEach(item=>{
+        item.ondragstart=e=>e.dataTransfer.setData('text',item.dataset.idx);
+        item.ondragover=e=>e.preventDefault();
+        item.ondrop=e=>{
+          const from=+e.dataTransfer.getData('text'),to=+item.dataset.idx;
+          const m=tasks.splice(from,1)[0];
+          tasks.splice(to,0,m);
+          renderGrid();
+        };
+      });
+    }
+
+    ['dragover','dragleave','drop'].forEach(evt=>{
+      dropZone.addEventListener(evt,e=>{
+        e.preventDefault();
+        dropZone.classList.toggle('bring', evt==='dragover');
+        if(evt==='drop'){
+          handleFiles(e.dataTransfer.files).then(r=>{ tasks=r.concat(tasks); renderGrid(); });
+        }
+      });
+    });
+    fileInput.onchange=_=> handleFiles(fileInput.files).then(r=>{ tasks=r.concat(tasks); renderGrid(); });
+
+    saveBtn.onclick=saveTasks; loadBtn.onclick=loadTasks;
+
+    cancelBtn.onclick = ()=> cancelFlag=true;
+
+    convertBtn.onclick = async ()=>{
+      const format=formatSelect.value;
+      progressContainer.style.display='block';
+      progressBar.style.width='0%';
+      downloadLinks.innerHTML='';convertedBlobs=[];cancelFlag=false;
+      convertBtn.disabled=true;cancelBtn.disabled=false;zipBtn.disabled=true;
+
+      for(let i=0;i<tasks.length;i++){
+        if(cancelFlag)break;
+        const t=tasks[i];
+        const img=new Image();
+        img.src = t.svgText?'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(t.svgText))): t.dataURL;
+        await new Promise(res=>{
+          img.onload=async ()=>{
+            canvas.width=img.width;canvas.height=img.height;ctx.clearRect(0,0,canvas.width,canvas.height);
+            if(t.svgText){
+              const v=await Canvg.from(ctx,t.svgText);await v.render();
+            } else ctx.drawImage(img,0,0);
+            canvas.toBlob(blob=>{
+              const ext=format.split('/')[1], name=t.file.name.replace(/\.\w+$/,'.'+ext);
+              const url=URL.createObjectURL(blob);
+              const a=document.createElement('a');
+              a.href=url;a.download=name;a.textContent=`Download ${name}`;
+              a.onclick=()=>{ downloadCount++; downloadCountEl.textContent=`Downloaded: ${downloadCount}`; };
+              downloadLinks.appendChild(a);
+              convertedBlobs.push({blob,name}); res();
+            }, format, (format==='image/jpeg'||format==='image/webp')? t.quality/100 : 1);
+          };
+          if(img.complete) img.onload();
+        });
+        progressBar.style.width = Math.round((i+1)*100/tasks.length)+'%';
+      }
+      convertBtn.disabled=false; cancelBtn.disabled=true;
+      if(!cancelFlag) zipBtn.disabled=false;
+    };
+
+    zipBtn.onclick = async ()=>{
+      const zip=new JSZip();convertedBlobs.forEach(f=>zip.file(f.name,f.blob));
+      const blob=await zip.generateAsync({type:'blob'}); const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download='converted_images.zip';a.click();
+    };
+  </script>
+</body>
+</html>

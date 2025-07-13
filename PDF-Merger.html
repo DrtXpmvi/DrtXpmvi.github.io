@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ultimate PDF Merger 🔐</title>
+<link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f7fa; display: flex; justify-content: center; padding: 2rem; margin: 0; }
+  .container { background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+  #drop-zone { padding: 1rem; border: 2px dashed #aaa; border-radius: 6px; cursor: pointer; text-align: center; margin-bottom: 1rem; }
+  #drop-zone.hover { background: #eef; }
+  .controls { display: flex; gap: 0.5rem; margin-bottom: 1rem; justify-content: center; }
+  .controls button { flex: 1; padding: 0.4rem; font-size: 0.9rem; }
+  #thumbnail-list { list-style: none; padding: 0; margin: 1rem 0; max-height: 320px; overflow-y: auto; }
+  #thumbnail-list li { position: relative; display: flex; align-items: center; padding: 0.5rem; margin-bottom: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: #fafafa; cursor: grab; }
+  #thumbnail-list li.dragging { opacity: 0.5; }
+  #thumbnail-list img { width: 60px; margin-right: 0.5rem; border: 1px solid #ccc; transition: transform 0.2s ease; }
+  #thumbnail-list img:hover { transform: scale(1.5); z-index: 10; }
+  .page-number { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.6); color: #fff; padding: 2px 5px; font-size: 0.75rem; border-radius: 3px; }
+  .meta { margin-left: auto; font-size: 0.75rem; color: #555; text-align: right; }
+  .remove-btn { background: none; border: none; color: #d00; font-size: 1.2rem; cursor: pointer; margin-left: 0.5rem; }
+  button { padding: 0.6rem 1.2rem; font-size: 1rem; border: none; border-radius: 4px; background: #007bff; color: #fff; cursor: pointer; }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  #status { margin-top: 1rem; font-size: 0.9rem; word-break: break-word; }
+  @media (max-width: 500px) { .container { padding: 1rem; } .controls { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ultimate PDF Merger 🔐</h1>
+    <div id="drop-zone">Drag & drop PDFs here, or click to select</div>
+    <input type="file" id="file-input" accept="application/pdf" multiple hidden/>
+    <div class="controls">
+      <button id="save-layout-btn" disabled>Save Layout</button>
+      <button id="load-layout-btn">Load Layout</button>
+      <button id="clear-layout-btn">Clear Saved</button>
+    </div>
+    <ul id="thumbnail-list"></ul>
+    <button id="merge-btn" disabled>Merge PDFs</button>
+    <div id="status"></div>
+  </div>
+
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.min.js"></script>
+  <script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.15.349/pdf.worker.min.js';
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const thumbList = document.getElementById('thumbnail-list');
+    const mergeBtn = document.getElementById('merge-btn');
+    const statusDiv = document.getElementById('status');
+    const saveBtn = document.getElementById('save-layout-btn');
+    const loadBtn = document.getElementById('load-layout-btn');
+    const clearBtn = document.getElementById('clear-layout-btn');
+
+    let pdfFiles = []; // { fileName, data, thumb, meta }
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    ['dragenter','dragover'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.add('hover'); }));
+    ['dragleave','drop'].forEach(evt => dropZone.addEventListener(evt, e => { e.preventDefault(); dropZone.classList.remove('hover'); }));
+    dropZone.addEventListener('drop', e => handleFiles([...e.dataTransfer.files]));
+    fileInput.addEventListener('change', e => handleFiles([...e.target.files]));
+    saveBtn.addEventListener('click', saveLayout);
+    loadBtn.addEventListener('click', loadLayout);
+    clearBtn.addEventListener('click', clearLayout);
+    mergeBtn.addEventListener('click', mergePDFs);
+
+    async function handleFiles(files) {
+      for (const file of files.filter(f => f.type === 'application/pdf')) {
+        try {
+          const arr = await file.arrayBuffer();
+          const task = pdfjsLib.getDocument({ data: arr, password: true });
+          const pdf = await new Promise((res, rej) => {
+            task.onPassword = (callback) => {
+              const pwd = prompt(`Enter password for "${file.name}":`);
+              if (pwd === null) return rej(new Error('Password cancelled'));
+              callback(pwd);
+            };
+            task.promise.then(res).catch(rej);
+          });
+          const meta = { title: pdf.title||'', pages: pdf.numPages, sizeKB: Math.round(arr.byteLength/1024) };
+          const page = await pdf.getPage(1);
+          const vp = page.getViewport({ scale: 0.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = vp.width; canvas.height = vp.height;
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+          const thumb = canvas.toDataURL();
+          pdfFiles.push({ fileName: file.name, data: arr, thumb, meta });
+        } catch (err) {
+          console.warn(`Skipped "${file.name}":`, err.message);
+        }
+      }
+      rebuildList();
+    }
+
+    function rebuildList() {
+      thumbList.innerHTML = '';
+      pdfFiles.forEach((obj, i) => {
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.dataset.idx = i;
+        li.innerHTML = `
+          <span class="page-number">${i+1}</span>
+          <img src="${obj.thumb}" alt="Thumb">
+          <div>
+            <div>${obj.fileName}</div>
+            <div class="meta">${obj.meta.title ? `Title: ${obj.meta.title} • ` : ''}${obj.meta.pages} page(s) • ${obj.meta.sizeKB} KB</div>
+          </div>
+          <button class="remove-btn">&times;</button>
+        `;
+        thumbList.appendChild(li);
+        li.querySelector('.remove-btn').addEventListener('click', () => { pdfFiles.splice(i,1); rebuildList(); });
+        li.addEventListener('dragstart', () => li.classList.add('dragging'));
+        li.addEventListener('dragend', () => li.classList.remove('dragging'));
+      });
+      updateUI();
+    }
+
+    thumbList.addEventListener('dragover', e => {
+      e.preventDefault();
+      autoScroll(e.clientY);
+      const dragging = thumbList.querySelector('.dragging');
+      const after = getDragAfter(e.clientY);
+      if (after) thumbList.insertBefore(dragging, after);
+      else thumbList.appendChild(dragging);
+      rebuildOrder();
+    });
+
+    function getDragAfter(y) {
+      return [...thumbList.querySelectorAll('li:not(.dragging)')].reduce((closest, el) => {
+        const rect = el.getBoundingClientRect();
+        const off = y - rect.top - rect.height/2;
+        return (off < 0 && off > closest.offset)? { offset: off, element: el } : closest;
+      }, { offset: -Infinity }).element;
+    }
+
+    function rebuildOrder() {
+      const reordered = [...thumbList.children].map(li => pdfFiles[+li.dataset.idx]);
+      pdfFiles = reordered;
+      thumbList.querySelectorAll('li').forEach((li, idx) => {
+        li.dataset.idx = idx;
+        li.querySelector('.page-number').textContent = idx+1;
+      });
+    }
+
+    function autoScroll(y) {
+      const rect = thumbList.getBoundingClientRect(), zone = 40, speed = 10;
+      if (y < rect.top + zone) thumbList.scrollTop -= speed;
+      else if (y > rect.bottom - zone) thumbList.scrollTop += speed;
+    }
+
+    function updateUI() {
+      mergeBtn.disabled = pdfFiles.length < 2;
+      saveBtn.disabled = pdfFiles.length === 0;
+      statusDiv.textContent = `${pdfFiles.length} PDF(s) ready`;
+    }
+
+    function saveLayout() {
+      localStorage.setItem('pdfMergerLayout', JSON.stringify(pdfFiles.map(o => o.fileName)));
+      statusDiv.textContent = 'Layout saved!';
+    }
+
+    function loadLayout() {
+      const data = JSON.parse(localStorage.getItem('pdfMergerLayout') || 'null');
+      if (!data) return statusDiv.textContent = 'No saved layout found.';
+      pdfFiles.sort((a,b)=> data.indexOf(a.fileName) - data.indexOf(b.fileName));
+      rebuildList();
+      statusDiv.textContent = 'Layout loaded.';
+    }
+
+    function clearLayout() {
+      localStorage.removeItem('pdfMergerLayout');
+      statusDiv.textContent = 'Saved layout cleared.';
+    }
+
+    async function mergePDFs() {
+      statusDiv.textContent = 'Merging...';
+      const merged = await PDFLib.PDFDocument.create();
+      for (const obj of pdfFiles) {
+        const doc = await PDFLib.PDFDocument.load(obj.data, { ignoreEncryption: true });
+        const pages = await merged.copyPages(doc, doc.getPageIndices());
+        pages.forEach(p => merged.addPage(p));
+      }
+      const blob = await merged.save().then(bytes => new Blob([bytes], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'merged.pdf';
+      a.click();
+      statusDiv.textContent = '✅ Merge complete! Download started.';
+    }
+  </script>
+</body>
+</html>

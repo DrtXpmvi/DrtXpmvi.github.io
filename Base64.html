@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Base64 Encoder/Decoder</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --bg-color: #f4f4f4;
+      --text-color: #333;
+      --card-bg: white;
+      --textarea-bg: white;
+      --dropzone-bg: #ffffff;
+      --dropzone-border: #aaa;
+      --output-bg: #eef;
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #f1f1f1;
+      --card-bg: #1e1e1e;
+      --textarea-bg: #2c2c2c;
+      --dropzone-bg: #2a2a2a;
+      --dropzone-border: #555;
+      --output-bg: #333;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      width: 100%;
+      transition: background 0.3s;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      margin: 1rem 0;
+      padding: 10px;
+      font-size: 1rem;
+      background: var(--textarea-bg);
+      color: var(--text-color);
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .buttons {
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .copy-button {
+      background-color: #28a745;
+    }
+
+    .copy-button:hover {
+      background-color: #1e7e34;
+    }
+
+    .download-button {
+      background-color: #ffc107;
+      color: black;
+    }
+
+    .download-button:hover {
+      background-color: #e0a800;
+    }
+
+    .auto-button {
+      background-color: #6f42c1;
+    }
+
+    .auto-button:hover {
+      background-color: #4e2a9a;
+    }
+
+    .toggle-dark {
+      background-color: #444;
+      color: #fff;
+      margin-top: 10px;
+    }
+
+    .toggle-dark:hover {
+      background-color: #222;
+    }
+
+    #output {
+      background: var(--output-bg);
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .file-drop {
+      border: 2px dashed var(--dropzone-border);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      background: var(--dropzone-bg);
+      color: var(--text-color);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .file-drop.dragover {
+      background: #cfe8ff;
+      border-color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 Base64 - Encoder & Decoder</h1>
+  <center><h4>Written in HTML, CSS, & JavaScript - Developed by DrtXpmvi</h4></center>
+  <div class="container">
+    <div class="file-drop" id="dropZone">Drag & drop a .txt file here or use the upload below</div>
+    <input type="file" class="file-input" accept=".txt" onchange="handleFileUpload(event)" />
+
+    <label for="inputText"><strong>Input Text</strong></label>
+    <textarea id="inputText" placeholder="Enter or upload text..."></textarea>
+
+    <div class="buttons">
+      <button onclick="encodeText()">Encode</button>
+      <button onclick="decodeText()">Decode</button>
+      <button class="auto-button" onclick="autoDetect()">Auto Encode/Decode</button>
+      <button class="copy-button" onclick="copyOutput()">Copy Output</button>
+      <button class="download-button" onclick="downloadOutput()">Download Output</button>
+      <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+    </div>
+
+    <label for="output"><strong>Output</strong></label>
+    <div id="output">Encoded or decoded result will appear here...</div>
+  </div>
+
+  <script>
+    function encodeText() {
+      const input = document.getElementById('inputText').value;
+      try {
+        const encoded = btoa(unescape(encodeURIComponent(input)));
+        document.getElementById('output').textContent = encoded;
+      } catch (e) {
+        document.getElementById('output').textContent = 'Error: Invalid input for encoding.';
+      }
+    }
+
+    function decodeText() {
+      const input = document.getElementById('inputText').value;
+      try {
+        const decoded = decodeURIComponent(escape(atob(input)));
+        document.getElementById('output').textContent = decoded;
+      } catch (e) {
+        document.getElementById('output').textContent = 'Error: Invalid Base64 string.';
+      }
+    }
+
+    function autoDetect() {
+      const input = document.getElementById('inputText').value.trim();
+      const isLikelyBase64 = /^[A-Za-z0-9+/=\n\r]+$/.test(input) && input.length % 4 === 0;
+
+      try {
+        if (isLikelyBase64) {
+          const decoded = decodeURIComponent(escape(atob(input)));
+          document.getElementById('output').textContent = decoded;
+        } else {
+          const encoded = btoa(unescape(encodeURIComponent(input)));
+          document.getElementById('output').textContent = encoded;
+        }
+      } catch (e) {
+        document.getElementById('output').textContent = 'Auto-detection failed: Invalid input.';
+      }
+    }
+
+    function copyOutput() {
+      const output = document.getElementById('output').textContent;
+      navigator.clipboard.writeText(output).then(() => {
+        alert('Output copied to clipboard!');
+      }).catch(() => {
+        alert('Failed to copy text.');
+      });
+    }
+
+    function downloadOutput() {
+      const content = document.getElementById('output').textContent;
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "base64_result.txt";
+      link.click();
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('inputText').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    // Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type === "text/plain") {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('inputText').value = e.target.result;
+        };
+        reader.readAsText(file);
+      } else {
+        alert('Only .txt files are supported.');
+      }
+    });
+
+    // 🌙 Dark Mode Toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // Restore theme on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+      }
+    });
+  </script>
+</body>
+</html>

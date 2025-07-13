@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DrtXpmvi's MultiTool ToolKit</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --card-bg: #fff;
+      --button-bg: #764ba2;
+      --header-bg: linear-gradient(to right, #667eea, #764ba2);
+    }
+    [data-theme="dark"] {
+      --bg-color: #1e1e1e;
+      --text-color: #e0e0e0;
+      --card-bg: #2c2c2c;
+      --button-bg: #bb86fc;
+      --header-bg: linear-gradient(to right, #444, #111);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    /* 🔔 Dismissible Banner */
+    .banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: -100px;
+      left: 0;
+      right: 0;
+      background-color: #ffcc00;
+      color: #000;
+      padding: 12px 40px 12px 20px;
+      font-weight: bold;
+      z-index: 999;
+      transition: top 0.5s ease;
+    }
+    .banner.show {
+      top: 0;
+    }
+    .banner .close-banner {
+      margin-left: auto;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      position: relative;
+    }
+    .btn-primary {
+      margin-top: 20px;
+      background: white;
+      color: #764ba2;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: space-around;
+    }
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      overflow: hidden;
+      width: 100%;
+      max-width: 350px;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease;
+    }
+    .product-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .product-card:hover {
+      transform: translateY(-10px);
+    }
+    .product-card img {
+      width: 100%;
+      display: block;
+    }
+    .product-card h2 {
+      margin: 16px;
+      font-size: 1.5em;
+    }
+    .product-card p {
+      margin: 0 16px 16px;
+    }
+    .product-card button {
+      margin: 0 16px 16px;
+      padding: 10px;
+      width: calc(100% - 32px);
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #eee;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="banner" id="statusBanner">
+    We are currently undergoing maintenance, and our tools are unavailable at the moment. We apologize for any inconvenience that this may cause!
+    <span class="close-banner" onclick="dismissBanner()">×</span>
+  </div>
+
+  <header>
+    <div class="container">
+      <h1>Explore DrtXpmvi's MultiTool Toolkit</h1>
+      <p>We offer a wide‑range of digital tools, including a Caesar Cipher encoder & decoder, a Base64 encoder & decoder, as well an EXIF / MetaData Remover, an Image Converter, an Audio Converter, and many many more cool and useful tools! The best part is... DrtXpmvi's Digital Tools are 100% free, and completely open‑source. Meaning the source code for every single one of our tool's is publicly available, and can be downloaded, modified, and used by others, and is available via GitHub.</p>
+      <p>Please note that only three of our tools are currently available for use at this currenty moment. We apologize for any inconvenience this may cause, but unfortunely the other tools and services we are planning to offer, are currently still in active development and are not production ready (quite yet, at least). Thank you for your understanding and patience, we hope to have all tools/services online as soon as possible! Until then feel free to use the three tools currently available!</p>
+      <br>
+	  <br>
+	  <a href="#products" class="btn-primary">View All Tools and Services</a>
+    </div>
+  </header>
+
+  <main id="products" class="container">
+    <section class="products">
+      <!-- Top 3 – Always Active -->
+      <div class="product-card">
+        <img src="./CaesarCipher-Featured-Img.png" alt="Product 1"/>
+        <h2>Caesar Cipher</h2>
+        <p>All‑in‑one tool for encoding and decoding text using a Caesar Cipher</p>
+        <a href="CaesarCipher.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Base64-Featured-Img-resized.png" alt="Product 2"/>
+        <h2>Base64</h2>
+        <p>All‑in‑one tool for encoding and decoding text using Base64</p>
+        <a href="Base64.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./EXIF-Metadata-Remover-Feat-Img.png" alt="Product 3"/>
+        <h2>EXIF/Metadata Remover</h2>
+        <p>All‑in‑one tool for removing EXIF/Metadata from images.</p>
+        <a href="EXIF-Remover.html" target="_blank"><button>Learn More</button></a>
+      </div>
+
+      <!-- Remaining 6 – Conditionally Disabled -->
+      <div class="product-card">
+        <img src="./Image-Converter-Feat-Img.png" alt="Image Converter"/>
+        <h2>Image Converter</h2>
+        <p>Convert images easily with one click.</p>
+        <a href="ImageConverter.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Resizer-Feat-Img.png" alt="Image Resizer"/>
+        <h2>Image Resizer</h2>
+        <p>Resize and convert images in one click.</p>
+        <a href="ImageResizer.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Color-Picker-Feat-Img.png" alt="Image Color Picker"/>
+        <h2>Image Color Picker</h2>
+        <p>Create color palettes and pick colors easily.</p>
+        <a href="ImageColorPicker.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./PDF-Merger-Feat-Img.png" alt="PDF Merger"/>
+        <h2>PDF Merger</h2>
+        <p>Merge multiple PDFs into one file.</p>
+        <a href="PDF-Merger.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Password-Generator-Feat-Img.png" alt="Secure Password Generator"/>
+        <h2>Secure Password Generator</h2>
+        <p>Generate strong, random passwords easily.</p>
+        <a href="Secure-Password-Generator.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Username-Generator-Feat-Img.png" alt="Random Username Generator"/>
+        <h2>Username Generator</h2>
+        <p>Generate random usernames easily.</p>
+        <a href="#" target="_blank"><button>Learn More</button></a>
+      </div>
+    </section>
+  </main>
+
+  <section class="modal" id="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modal-body"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 DrtXpmvi. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+    function toggleTheme() {
+      const theme = document.documentElement.getAttribute("data-theme");
+      document.documentElement.setAttribute("data-theme", theme === "dark" ? "light" : "dark");
+    }
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("show");
+        }
+      });
+    });
+    document.querySelectorAll(".product-card").forEach(card => observer.observe(card));
+
+    function dismissBanner() {
+      document.getElementById("statusBanner").classList.remove("show");
+    }
+
+    fetch('https://corsproxy.io/?https://pastebin.com/raw/vj0AenEE')
+      .then(res => res.text())
+      .then(text => {
+        if (text.trim() !== "Status:Disabled") {
+          document.getElementById("statusBanner").classList.add("show");
+          disableExtraButtons();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById("statusBanner").classList.add("show");
+        disableExtraButtons();
+      });
+
+    function disableExtraButtons() {
+      document.querySelectorAll('.product-card').forEach((card, i) => {
+        if (i >= 0) {
+          const btn = card.querySelector('button');
+          const link = card.querySelector('a');
+          if (btn) {
+            btn.textContent = "Under Maintenance!";
+            btn.style.backgroundColor = "gray";
+            btn.style.cursor = "not-allowed";
+            btn.disabled = true;
+            btn.title = "This tool is undergoing some maintenance!!";
+            btn.addEventListener('touchstart', e => {
+              e.preventDefault();
+              alert("This tool is Coming Soon!!");
+            }, { passive: false });
+          }
+          if (link) {
+            link.addEventListener('click', e => e.preventDefault());
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

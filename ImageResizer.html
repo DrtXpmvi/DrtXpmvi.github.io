@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ultimate Image Resizer</title>
+  <link rel="icon" href="https://raw.githubusercontent.com/DrtXpmvi/DrtXpmvi.github.io/refs/heads/main/favicon.ico" type="image/x-icon">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background:#f7f7f7; margin:0; padding:20px; text-align:center; }
+    .container { background:#fff; padding:20px; border-radius:8px; display:inline-block; box-shadow:0 0 15px rgba(0,0,0,0.1); }
+    #dropZone { border:2px dashed #999; padding:20px; margin-bottom:10px; border-radius:5px; cursor:pointer; background:#fafafa; }
+    #canvasWrapper { display:inline-block; position:relative; }
+    canvas { border:1px solid #ccc; display:block; max-width:100%; }
+    #stickersLayer { position:absolute; top:0; left:0; }
+    .sticker {
+      position:absolute;
+      cursor:move;
+      font-size:48px;
+      user-select:none;
+    }
+    .controls { margin-top:15px; text-align:left; }
+    .controls label { display:block; margin:6px 0; }
+    .controls input, .controls select { margin-left:8px; }
+    .controls button { margin:6px 6px 0 0; padding:6px 12px; }
+    #resizeBtn { background:#007bff; color:white; border:none; border-radius:4px; cursor:pointer; }
+    #resizeBtn:hover { background:#0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Ultimate Image Resizer</h1>
+
+    <div id="dropZone">📥 Drop or click to upload</div>
+    <input type="file" id="imageInput" accept="image/*" hidden />
+
+    <div id="canvasWrapper">
+      <canvas id="cropCanvas"></canvas>
+      <div id="stickersLayer"></div>
+    </div>
+
+    <div class="controls">
+      <label>Zoom: <input type="range" id="zoomRange" min="0.5" max="3" step="0.1" value="1"/></label>
+      <label>Rotate:
+        <select id="rotateSelect">
+          <option value="0">0°</option>
+          <option value="90">90°</option>
+          <option value="180">180°</option>
+          <option value="270">270°</option>
+        </select>
+      </label>
+      <label>Brightness: <input type="range" id="brightnessRange" min="0.5" max="1.5" step="0.01" value="1"/></label>
+      <label>Contrast: <input type="range" id="contrastRange" min="0.5" max="1.5" step="0.01" value="1"/></label>
+      <label>Sticker:
+        <select id="stickerSelect">
+          <option value="none">None</option>
+          <option value="❤️">❤️</option>
+          <option value="🌟">🌟</option>
+          <option value="🔥">🔥</option>
+        </select>
+      </label>
+      <label>W: <input type="number" id="newWidth"/></label>
+      <label>H: <input type="number" id="newHeight"/></label>
+      <label><input type="checkbox" id="keepRatio" checked/> Maintain Ratio</label>
+      <label>Quality: <input type="range" id="qualityRange" min="0.1" max="1" step="0.01" value="0.8"/><span id="qualityLabel">0.8</span></label>
+      <label>Format:
+        <select id="formatSelect">
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </label>
+      <button id="undoBtn" disabled>Undo</button>
+      <button id="redoBtn" disabled>Redo</button>
+      <button id="resizeBtn">Export</button>
+    </div>
+  </div>
+
+  <script>
+    const dz = document.getElementById('dropZone'),
+      imgInp = document.getElementById('imageInput'),
+      wrapper = document.getElementById('canvasWrapper'),
+      canvas = document.getElementById('cropCanvas'),
+      ctx = canvas.getContext('2d'),
+      stickersLayer = document.getElementById('stickersLayer'),
+      zoomRange = document.getElementById('zoomRange'),
+      rotateSelect = document.getElementById('rotateSelect'),
+      brightnessRange = document.getElementById('brightnessRange'),
+      contrastRange = document.getElementById('contrastRange'),
+      stickerSelect = document.getElementById('stickerSelect'),
+      wInput = document.getElementById('newWidth'),
+      hInput = document.getElementById('newHeight'),
+      keepRatio = document.getElementById('keepRatio'),
+      qRange = document.getElementById('qualityRange'),
+      qLabel = document.getElementById('qualityLabel'),
+      fmt = document.getElementById('formatSelect'),
+      undoBtn = document.getElementById('undoBtn'),
+      redoBtn = document.getElementById('redoBtn'),
+      btn = document.getElementById('resizeBtn');
+
+    let img = new Image(), origW, origH;
+    let scale = 1, rot = 0, bright = 1, contrast = 1;
+    let offsetX = 0, offsetY = 0;
+    let crop = { x: 20, y: 20, w: 150, h: 150 };
+    let isDragging = false, dragType = null, startX, startY;
+    let history = [], historyIdx = -1;
+    let currentSticker = null, stickerOffset = {x:0,y:0};
+
+    function saveState() {
+      const stickers = Array.from(stickersLayer.children).map(el => ({
+        char: el.textContent,
+        x: el.offsetLeft,
+        y: el.offsetTop,
+        size: parseInt(getComputedStyle(el).fontSize)
+      }));
+      history = history.slice(0, historyIdx+1);
+      history.push(JSON.stringify({scale, rot, bright, contrast, offsetX, offsetY, crop, stickers}));
+      historyIdx++; updateUndoRedo();
+    }
+
+    function loadState(idx) {
+      const s = JSON.parse(history[idx]);
+      ({scale, rot, bright, contrast, offsetX, offsetY, crop} = s);
+      stickersLayer.innerHTML = '';
+      s.stickers.forEach(st => {
+        const el = createSticker(st.char);
+        el.style.left = st.x + 'px';
+        el.style.top = st.y + 'px';
+        el.style.fontSize = st.size + 'px';
+        stickersLayer.appendChild(el);
+      });
+    }
+
+    function updateUndoRedo() {
+      undoBtn.disabled = historyIdx <= 0;
+      redoBtn.disabled = historyIdx >= history.length - 1;
+    }
+
+    function createSticker(char) {
+      const el = document.createElement('div');
+      el.className = 'sticker';
+      el.textContent = char;
+      el.style.left = '10px'; el.style.top = '10px'; el.style.fontSize = '48px';
+      el.onmousedown = e => {
+        currentSticker = el;
+        stickerOffset.x = e.offsetX;
+        stickerOffset.y = e.offsetY;
+      };
+      document.onmousemove = e => {
+        if (currentSticker) {
+          currentSticker.style.left = (e.clientX - wrapper.offsetLeft - stickerOffset.x) + 'px';
+          currentSticker.style.top = (e.clientY - wrapper.offsetTop - stickerOffset.y) + 'px';
+        }
+      };
+      document.onmouseup = () => {
+        if (currentSticker) saveState();
+        currentSticker = null;
+      };
+      return el;
+    }
+
+    function render() {
+      const W = origW * scale, H = origH * scale;
+      wrapper.style.width = W + 'px'; wrapper.style.height = H + 'px';
+      canvas.width = W; canvas.height = H;
+      ctx.resetTransform(); ctx.clearRect(0,0,W,H);
+      ctx.filter = `brightness(${bright}) contrast(${contrast})`;
+      ctx.translate(W/2, H/2);
+      ctx.rotate(rot * Math.PI / 180);
+      ctx.drawImage(img, -W/2 + offsetX, -H/2 + offsetY, W, H);
+      ctx.resetTransform(); ctx.filter = 'none';
+      ctx.strokeStyle = 'red'; ctx.lineWidth = 2;
+      ctx.strokeRect(crop.x, crop.y, crop.w, crop.h);
+      wInput.value = Math.round(crop.w); hInput.value = Math.round(crop.h);
+    }
+
+    dz.onclick = () => imgInp.click();
+    dz.ondragover = e => { e.preventDefault(); dz.style.background = '#e5e5e5'; };
+    dz.ondragleave = () => dz.style.background = '#fafafa';
+    dz.ondrop = e => { e.preventDefault(); dz.style.background = '#fafafa'; imgInp.files = e.dataTransfer.files; imgInp.dispatchEvent(new Event('change')); };
+
+    imgInp.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        img.onload = () => {
+          origW = img.width; origH = img.height;
+          scale = 1; rot = 0; bright = 1; contrast = 1; offsetX = 0; offsetY = 0;
+          crop = { x: 20, y: 20, w: origW / 4, h: origH / 4 };
+          rotateSelect.value = '0'; brightnessRange.value = bright; contrastRange.value = contrast;
+          stickerSelect.value = 'none'; stickersLayer.innerHTML = '';
+          saveState(); render();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    zoomRange.oninput = () => { scale = parseFloat(zoomRange.value); saveState(); render(); };
+    rotateSelect.onchange = () => { rot = parseInt(rotateSelect.value); saveState(); render(); };
+    brightnessRange.oninput = () => { bright = parseFloat(brightnessRange.value); render(); };
+    contrastRange.oninput = () => { contrast = parseFloat(contrastRange.value); render(); };
+    wInput.oninput = ()=>{ crop.w = parseInt(wInput.value); render(); saveState(); };
+    hInput.oninput = ()=>{ crop.h = parseInt(hInput.value); render(); saveState(); };
+    qRange.oninput = () => qLabel.textContent = qRange.value;
+
+    stickerSelect.onchange = () => {
+      if (stickerSelect.value !== 'none') {
+        const el = createSticker(stickerSelect.value);
+        stickersLayer.appendChild(el);
+        saveState(); stickerSelect.value = 'none';
+      }
+    };
+
+    undoBtn.onclick = ()=>{ if(historyIdx > 0){ loadState(--historyIdx); updateUndoRedo(); render(); }};
+    redoBtn.onclick = ()=>{ if(historyIdx < history.length-1){ loadState(++historyIdx); updateUndoRedo(); render(); }};
+
+    btn.onclick = ()=>{
+      const out = document.createElement('canvas'), oc = out.getContext('2d');
+      out.width = crop.w; out.height = crop.h;
+      oc.filter = `brightness(${bright}) contrast(${contrast})`;
+      oc.translate(out.width/2, out.height/2);
+      oc.rotate(rot * Math.PI / 180);
+      oc.drawImage(canvas, crop.x, crop.y, crop.w, crop.h, -crop.w/2, -crop.h/2, crop.w, crop.h);
+      oc.filter = 'none';
+      Array.from(stickersLayer.children).forEach(el => {
+        const x = el.offsetLeft - crop.x, y = el.offsetTop - crop.y;
+        oc.font = `${el.style.fontSize} serif`;
+        oc.fillText(el.textContent, x, y + parseInt(el.style.fontSize));
+      });
+      out.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'edited.' + fmt.value.split('/')[1];
+        a.click();
+      }, fmt.value, parseFloat(qRange.value));
+    };
+  </script>
+</body>
+</html>
