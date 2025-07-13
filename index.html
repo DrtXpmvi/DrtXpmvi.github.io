@@ -249,15 +249,21 @@
       .then(res => res.text())
       .then(text => {
         if (text.trim() !== "Status:Disabled") {
-          document.getElementById("statusBanner").classList.add("show");
-          disableExtraButtons();
-        }
+	  if (window.innerWidth > 768) {
+		document.getElementById("statusBanner").classList.add("show");
+		disableExtraButtons();
+	  }
+	}
+
       })
       .catch(err => {
-        console.error(err);
-        document.getElementById("statusBanner").classList.add("show");
-        disableExtraButtons();
-      });
+  console.error(err);
+  if (window.innerWidth > 768) {
+    document.getElementById("statusBanner").classList.add("show");
+    disableExtraButtons();
+  }
+});
+
 
     function disableExtraButtons() {
       document.querySelectorAll('.product-card').forEach((card, i) => {
