@@ -54,7 +54,7 @@
       top: 0;
     }
     .banner.dismiss {
-      top: -100px !important;
+      top: -200px !important;
     }
     .banner .close-banner {
       margin-left: auto;
@@ -78,7 +78,7 @@
       }
     }
 
-    /* Disabled button/link styling */
+    /* Disabled button + link styling */
     .product-card button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -87,7 +87,7 @@
       pointer-events: none;
     }
 
-    /* Other page styles */
+    /* Original page styles */
     header {
       background: var(--header-bg);
       color: white;
@@ -170,6 +170,7 @@
     <span class="close-banner" onclick="dismissBanner()">×</span>
   </div>
 
+  <!-- Original Header & Intro -->
   <header>
     <div class="container">
       <h1>Explore DrtXpmvi's MultiTool Toolkit</h1>
@@ -179,6 +180,7 @@
     </div>
   </header>
 
+  <!-- Original Product Section -->
   <main id="products" class="container">
     <section class="products">
       <!-- Top 3 – Always Active -->
@@ -253,16 +255,18 @@
   </footer>
 
   <script>
+    // Close modal (original)
     function closeModal() {
       document.getElementById('modal').style.display = 'none';
     }
 
+    // Theme toggle (original)
     function toggleTheme() {
       const theme = document.documentElement.getAttribute("data-theme");
       document.documentElement.setAttribute("data-theme", theme === "dark" ? "light" : "dark");
     }
 
-    // Animate product cards when entering viewport
+    // Intersection Observer (original)
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -272,14 +276,17 @@
     });
     document.querySelectorAll(".product-card").forEach(card => observer.observe(card));
 
-    // Banner hide logic
+    // Dismiss banner with slide-up + remove from DOM
     function dismissBanner() {
       const banner = document.getElementById("statusBanner");
       banner.classList.remove("show");
       banner.classList.add("dismiss");
+      setTimeout(() => {
+        banner.style.display = "none";
+      }, 600);
     }
 
-    // Fetch maintenance status
+    // Fetch maintenance status (original)
     fetch('https://corsproxy.io/?https://pastebin.com/raw/vj0AenEE')
       .then(res => res.text())
       .then(text => {
@@ -294,7 +301,7 @@
         disableExtraButtons();
       });
 
-    // Disable buttons & links properly
+    // Disable extra buttons (original + pointer fix)
     function disableExtraButtons() {
       document.querySelectorAll('.product-card').forEach(card => {
         card.classList.add('disabled-link');
@@ -311,7 +318,7 @@
       });
     }
 
-    // Swipe-to-dismiss on mobile
+    // Swipe-to-dismiss on mobile (original)
     const banner = document.getElementById('statusBanner');
     let touchStartY = 0, touchEndY = 0;
     banner.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
