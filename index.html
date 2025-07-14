@@ -51,6 +51,7 @@
     }
     .banner.show {
       top: 0;
+      display: flex;
     }
     .banner.dismiss {
       top: -200px !important;
@@ -60,6 +61,11 @@
       cursor: pointer;
       font-size: 20px;
       font-weight: bold;
+    }
+
+    /* FIX for ghost '×' icon */
+    .banner:not(.show) .close-banner {
+      display: none;
     }
 
     @media (max-width: 768px) {
@@ -182,25 +188,13 @@
   <!-- Product Section -->
   <main id="products" class="container">
     <section class="products">
+      <!-- Sample product cards, extend as needed -->
       <div class="product-card">
         <img src="./CaesarCipher-Featured-Img.png" alt="Product 1"/>
         <h2>Caesar Cipher</h2>
         <p>All‑in‑one tool for encoding and decoding text using a Caesar Cipher</p>
         <a href="CaesarCipher.html" target="_blank"><button>Learn More</button></a>
       </div>
-      <div class="product-card">
-        <img src="./Base64-Featured-Img-resized.png" alt="Product 2"/>
-        <h2>Base64</h2>
-        <p>All‑in‑one tool for encoding and decoding text using Base64</p>
-        <a href="Base64.html" target="_blank"><button>Learn More</button></a>
-      </div>
-      <div class="product-card">
-        <img src="./EXIF-Metadata-Remover-Feat-Img.png" alt="Product 3"/>
-        <h2>EXIF/Metadata Remover</h2>
-        <p>All‑in‑one tool for removing EXIF/Metadata from images.</p>
-        <a href="EXIF-Remover.html" target="_blank"><button>Learn More</button></a>
-      </div>
-      <!-- Add remaining tools as needed -->
     </section>
   </main>
 
@@ -248,16 +242,14 @@
       .then(text => {
         if (text.trim() !== "Status:Disabled") {
           const banner = document.getElementById("statusBanner");
-          banner.style.display = "flex";
-          requestAnimationFrame(() => banner.classList.add("show"));
+          banner.classList.add("show");
           disableExtraButtons();
         }
       })
       .catch(err => {
         console.error(err);
         const banner = document.getElementById("statusBanner");
-        banner.style.display = "flex";
-        requestAnimationFrame(() => banner.classList.add("show"));
+        banner.classList.add("show");
         disableExtraButtons();
       });
 
