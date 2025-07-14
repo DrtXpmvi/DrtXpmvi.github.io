@@ -33,8 +33,9 @@
       transition: all 0.3s ease;
     }
 
+    /* Banner styles */
     .banner {
-      display: none; /* hidden by default */
+      display: none;
       align-items: center;
       justify-content: center;
       position: fixed;
@@ -62,8 +63,6 @@
       font-size: 20px;
       font-weight: bold;
     }
-
-    /* FIX for ghost '×' icon */
     .banner:not(.show) .close-banner {
       display: none;
     }
@@ -87,11 +86,11 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
-
     .product-card.disabled-link > a {
       pointer-events: none;
     }
 
+    /* Original site styles */
     header {
       background: var(--header-bg);
       color: white;
@@ -167,15 +166,12 @@
     }
   </style>
 </head>
-
 <body>
-  <!-- Maintenance Banner -->
   <div class="banner" id="statusBanner">
     We are currently undergoing maintenance, and our tools are unavailable at the moment. We apologize for any inconvenience that this may cause!
     <span class="close-banner" onclick="dismissBanner()">×</span>
   </div>
 
-  <!-- Header -->
   <header>
     <div class="container">
       <h1>Explore DrtXpmvi's MultiTool Toolkit</h1>
@@ -185,15 +181,64 @@
     </div>
   </header>
 
-  <!-- Product Section -->
   <main id="products" class="container">
     <section class="products">
-      <!-- Sample product cards, extend as needed -->
+      <!-- Top 3 – Always Active -->
       <div class="product-card">
         <img src="./CaesarCipher-Featured-Img.png" alt="Product 1"/>
         <h2>Caesar Cipher</h2>
         <p>All‑in‑one tool for encoding and decoding text using a Caesar Cipher</p>
         <a href="CaesarCipher.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Base64-Featured-Img-resized.png" alt="Product 2"/>
+        <h2>Base64</h2>
+        <p>All‑in‑one tool for encoding and decoding text using Base64</p>
+        <a href="Base64.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./EXIF-Metadata-Remover-Feat-Img.png" alt="Product 3"/>
+        <h2>EXIF/Metadata Remover</h2>
+        <p>All‑in‑one tool for removing EXIF/Metadata from images.</p>
+        <a href="EXIF-Remover.html" target="_blank"><button>Learn More</button></a>
+      </div>
+
+      <!-- Remaining tools -->
+      <div class="product-card">
+        <img src="./Image-Converter-Feat-Img.png" alt="Image Converter"/>
+        <h2>Image Converter</h2>
+        <p>Convert images easily with one click.</p>
+        <a href="ImageConverter.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Resizer-Feat-Img.png" alt="Image Resizer"/>
+        <h2>Image Resizer</h2>
+        <p>Resize and convert images in one click.</p>
+        <a href="ImageResizer.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Color-Picker-Feat-Img.png" alt="Image Color Picker"/>
+        <h2>Image Color Picker</h2>
+        <p>Create color palettes and pick colors easily.</p>
+        <a href="ImageColorPicker.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./PDF-Merger-Feat-Img.png" alt="PDF Merger"/>
+        <h2>PDF Merger</h2>
+        <p>Merge multiple PDFs into one file.</p>
+        <a href="PDF-Merger.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Password-Generator-Feat-Img.png" alt="Secure Password Generator"/>
+        <h2>Secure Password Generator</h2>
+        <p>Generate strong, random passwords easily.</p>
+        <a href="Secure-Password-Generator.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Username-Generator-Feat-Img.png" alt="Random Username Generator"/>
+        <h2>Username Generator</h2>
+        <p>Generate usernames/gamertags easily.</p>
+        <a href="Username-and-Gamertag-Generator.html" target="_blank"><button>Learn More</button></a>
       </div>
     </section>
   </main>
