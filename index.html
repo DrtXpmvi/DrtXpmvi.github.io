@@ -33,6 +33,7 @@
       transition: all 0.3s ease;
     }
 
+    /* 🔔 Banner Styles */
     .banner {
       display: flex;
       align-items: center;
@@ -77,15 +78,16 @@
       }
     }
 
+    /* Disabled button/link styling */
     .product-card button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
     .product-card.disabled-link > a {
       pointer-events: none;
     }
 
+    /* Other page styles */
     header {
       background: var(--header-bg);
       color: white;
@@ -161,8 +163,8 @@
     }
   </style>
 </head>
-
 <body>
+  <!-- Maintenance Banner -->
   <div class="banner" id="statusBanner">
     We are currently undergoing maintenance, and our tools are unavailable at the moment. We apologize for any inconvenience that this may cause!
     <span class="close-banner" onclick="dismissBanner()">×</span>
@@ -179,13 +181,63 @@
 
   <main id="products" class="container">
     <section class="products">
+      <!-- Top 3 – Always Active -->
       <div class="product-card">
         <img src="./CaesarCipher-Featured-Img.png" alt="Product 1"/>
         <h2>Caesar Cipher</h2>
         <p>All‑in‑one tool for encoding and decoding text using a Caesar Cipher</p>
         <a href="CaesarCipher.html" target="_blank"><button>Learn More</button></a>
       </div>
-      <!-- ... Repeat similar product cards as needed ... -->
+      <div class="product-card">
+        <img src="./Base64-Featured-Img-resized.png" alt="Product 2"/>
+        <h2>Base64</h2>
+        <p>All‑in‑one tool for encoding and decoding text using Base64</p>
+        <a href="Base64.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./EXIF-Metadata-Remover-Feat-Img.png" alt="Product 3"/>
+        <h2>EXIF/Metadata Remover</h2>
+        <p>All‑in‑one tool for removing EXIF/Metadata from images.</p>
+        <a href="EXIF-Remover.html" target="_blank"><button>Learn More</button></a>
+      </div>
+
+      <!-- Remaining 6 – Conditionally Disabled -->
+      <div class="product-card">
+        <img src="./Image-Converter-Feat-Img.png" alt="Image Converter"/>
+        <h2>Image Converter</h2>
+        <p>Convert images easily with one click.</p>
+        <a href="ImageConverter.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Resizer-Feat-Img.png" alt="Image Resizer"/>
+        <h2>Image Resizer</h2>
+        <p>Resize and convert images in one click.</p>
+        <a href="ImageResizer.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Image-Color-Picker-Feat-Img.png" alt="Image Color Picker"/>
+        <h2>Image Color Picker</h2>
+        <p>Create color palettes and pick colors easily.</p>
+        <a href="ImageColorPicker.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./PDF-Merger-Feat-Img.png" alt="PDF Merger"/>
+        <h2>PDF Merger</h2>
+        <p>Merge multiple PDFs into one file.</p>
+        <a href="PDF-Merger.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Password-Generator-Feat-Img.png" alt="Secure Password Generator"/>
+        <h2>Secure Password Generator</h2>
+        <p>Generate strong, random passwords easily.</p>
+        <a href="Secure-Password-Generator.html" target="_blank"><button>Learn More</button></a>
+      </div>
+      <div class="product-card">
+        <img src="./Username-Generator-Feat-Img.png" alt="Random Username Generator"/>
+        <h2>Username Generator</h2>
+        <p>Generate usernames/gamertags easily.</p>
+        <a href="Username-and-Gamertag-Generator.html" target="_blank"><button>Learn More</button></a>
+      </div>
     </section>
   </main>
 
@@ -210,6 +262,7 @@
       document.documentElement.setAttribute("data-theme", theme === "dark" ? "light" : "dark");
     }
 
+    // Animate product cards when entering viewport
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -219,12 +272,14 @@
     });
     document.querySelectorAll(".product-card").forEach(card => observer.observe(card));
 
+    // Banner hide logic
     function dismissBanner() {
       const banner = document.getElementById("statusBanner");
       banner.classList.remove("show");
       banner.classList.add("dismiss");
     }
 
+    // Fetch maintenance status
     fetch('https://corsproxy.io/?https://pastebin.com/raw/vj0AenEE')
       .then(res => res.text())
       .then(text => {
@@ -239,8 +294,9 @@
         disableExtraButtons();
       });
 
+    // Disable buttons & links properly
     function disableExtraButtons() {
-      document.querySelectorAll('.product-card').forEach((card, i) => {
+      document.querySelectorAll('.product-card').forEach(card => {
         card.classList.add('disabled-link');
         const btn = card.querySelector('button');
         const link = card.querySelector('a');
@@ -255,22 +311,13 @@
       });
     }
 
+    // Swipe-to-dismiss on mobile
     const banner = document.getElementById('statusBanner');
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    banner.addEventListener('touchstart', e => {
-      touchStartY = e.touches[0].clientY;
-    });
-
-    banner.addEventListener('touchmove', e => {
-      touchEndY = e.touches[0].clientY;
-    });
-
+    let touchStartY = 0, touchEndY = 0;
+    banner.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+    banner.addEventListener('touchmove', e => { touchEndY = e.touches[0].clientY; });
     banner.addEventListener('touchend', () => {
-      if (touchEndY - touchStartY > 50) {
-        dismissBanner();
-      }
+      if (touchEndY - touchStartY > 50) dismissBanner();
     });
   </script>
 </body>
