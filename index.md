@@ -40,15 +40,7 @@ A modern YouTube/media downloader with advanced features like:
 ---
 
 ## 📊 GitHub Stats
-<div align="center">
-  
-![Tony's GitHub stats](https://github-readme-stats.vercel.app/api?username=DrtXpmvi&show_icons=true&theme=tokyonight)  
-
-![GitHub Streak](https://streak-stats.demolab.com?user=DrtXpmvi&theme=tokyonight&hide_border=false)  
-
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=DrtXpmvi&layout=compact&theme=tokyonight)
-
-</div>
+<p><img src="https://github-readme-stats.vercel.app/api?username=DrtXpmvi&amp;show_icons=true&amp;theme=tokyonight" alt="Tony&#39;s GitHub stats"> <img src="https://streak-stats.demolab.com?user=DrtXpmvi&amp;theme=tokyonight&amp;hide_border=false" alt="GitHub Streak"> <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=DrtXpmvi&amp;layout=compact&amp;theme=tokyonight" alt="Top Langs">
 
 ---
 
